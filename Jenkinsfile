@@ -67,7 +67,7 @@ pipeline {
         stage('Deploy Using Ansible') {
             steps {
                 echo "🚀 Deploying application with Ansible..."
-                withCredentials([sshUserPrivateKey(credentialsId: 'ansible-ec2-key	ubuntu
+                withCredentials([sshUserPrivateKey(credentialsId: 'ansible-ec2-key'	ubuntu
 AWS Credentials
 Jenkins Credentials Provider
 	System	(global)	', keyFileVariable: 'SSH_KEY')]) {
