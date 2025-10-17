@@ -48,20 +48,15 @@ pipeline {
         }
 
         stage('Deploy with Ansible') {
-            steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'ansible-ec2-key', keyFileVariable: 'EC2_KEY')]) {
-                    script {
-                        sh '''
-                            cd ansible
-                            ansible-playbook -i inventory.ini playbook.yml \
-                                --limit flask_server \
-                                --key-file $EC2_KEY
-                        '''
-                    }
-                }
-            }
+    steps {
+        sshagent(credentials: ['ansible-ec2-key']) {
+            sh '''
+                cd ansible
+                ansible-playbook -i inventory.ini playbook.yml --limit flask_server
+            '''
         }
     }
+}
 
     post {
         success {
