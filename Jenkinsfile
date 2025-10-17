@@ -64,18 +64,29 @@ pipeline {
             }
         }
 
-     stage('Deploy Using Ansible') {
-            steps {
-                echo "🚀 Deploying application with Ansible..."
-                withCredentials([sshUserPrivateKey(credentialsId: 'ansible-ec2-key', keyFileVariable: 'SSH_KEY')]) {
-                    sh """
-                        cd $ANSIBLE_DIR
-                        ansible-playbook -i inventory.ini playbook.yml --limit flask_server --key-file \$SSH_KEY
-                    """
-                }
-            }
+   stage('Deploy with Ansible') {
+    steps {
+        echo "🚀 Deploying Flask app via Ansible..."
+        withCredentials([
+            sshUserPrivateKey(
+                credentialsId: 'ansible-ec2-key',
+                keyFileVariable: 'EC2_KEY'
+            ),
+            [
+                $class: 'AmazonWebServicesCredentialsBinding',
+                credentialsId: 'aws-credentials',
+                accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+            ]
+        ]) {
+            sh '''
+                set -e
+                cd $ANSIBLE_DIR
+                ansible-playbook -i inventory.ini playbook.yml --limit flask_server --private-key $EC2_KEY -e "image_tag=$IMAGE_TAG"
+            '''
         }
     }
+}
 
     post {
         always {
