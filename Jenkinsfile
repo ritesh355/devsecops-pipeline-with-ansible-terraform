@@ -64,14 +64,30 @@ pipeline {
             }
         }
 
-   stage('Deploy with Ansible') {
+  stage('Deploy with Ansible') {
     steps {
-        withCredentials([sshUserPrivateKey(credentialsId: 'ansible-ec2-key', keyFileVariable: 'SSH_KEY')]) {
-            sh '''
-                cd ansible
-                ansible-playbook -i inventory.ini playbook.yml \
-                  --key-file $SSH_KEY --limit flask_server
-            '''
+        echo "🚀 Deploying Flask app via Ansible..."
+        withCredentials([
+            sshUserPrivateKey(
+                credentialsId: 'ansible-ec2-key',
+                keyFileVariable: 'EC2_KEY'
+            ),
+            [
+                $class: 'AmazonWebServicesCredentialsBinding',
+                credentialsId: 'aws-credentials',
+                accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+            ]
+        ]) {
+            ansiblePlaybook(
+                playbook: "${ANSIBLE_DIR}/playbook.yml",
+                inventory: "${ANSIBLE_DIR}/inventory.ini",
+                limit: 'flask_server',
+                extraVars: [
+                    image_tag: "${IMAGE_TAG}"
+                ],
+                credentialsId: 'ansible-ec2-key'
+            )
         }
     }
 }
