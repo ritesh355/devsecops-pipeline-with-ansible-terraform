@@ -64,13 +64,10 @@ pipeline {
             }
         }
 
-        stage('Deploy Using Ansible') {
+     stage('Deploy Using Ansible') {
             steps {
                 echo "🚀 Deploying application with Ansible..."
-                withCredentials([sshUserPrivateKey(credentialsId: 'ansible-ec2-key'	ubuntu
-AWS Credentials
-Jenkins Credentials Provider
-	System	(global)	', keyFileVariable: 'SSH_KEY')]) {
+                withCredentials([sshUserPrivateKey(credentialsId: 'ansible-ec2-key', keyFileVariable: 'SSH_KEY')]) {
                     sh """
                         cd $ANSIBLE_DIR
                         ansible-playbook -i inventory.ini playbook.yml --limit flask_server --key-file \$SSH_KEY
