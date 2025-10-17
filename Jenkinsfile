@@ -54,8 +54,6 @@ pipeline {
     }
 }
 
-            }
-        }
 
         stage('Push Image to ECR') {
             steps {
