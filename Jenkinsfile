@@ -10,7 +10,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', credentialsId: 'github-creds', url: 'https://github.com/<your-username>/<your-flask-repo>.git'
+                git branch: 'main', credentialsId: 'github-creds', url: 'https://github.com/ritesh355/devsecops-pipeline-with-ansible-terraform.git'
             }
         }
 
