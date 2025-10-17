@@ -2,107 +2,73 @@ pipeline {
     agent any
 
     environment {
-        AWS_REGION = "us-east-1"
-        ECR_REPO = "772954893641.dkr.ecr.us-east-1.amazonaws.com/flask-app"
-        IMAGE_TAG = "latest"
-        ANSIBLE_DIR = "/home/ritesh/devops-project/ansible"
+        AWS_REGION = 'us-east-1'
+        ECR_REPO = '772954893641.dkr.ecr.us-east-1.amazonaws.com/flask-app'
+        IMAGE_TAG = "build-${BUILD_NUMBER}"
     }
 
     stages {
-
         stage('Checkout Code') {
             steps {
-                echo "📦 Cloning repository..."
                 git branch: 'main', url: 'https://github.com/ritesh355/devsecops-pipeline-with-ansible-terraform.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                echo "🐳 Building Docker image..."
-                sh """
-                    docker build -t $ECR_REPO:$IMAGE_TAG .
-                """
+                script {
+                    echo "Building Docker image..."
+                    sh 'docker build -t $ECR_REPO:$IMAGE_TAG .'
+                }
             }
         }
 
         stage('Trivy Security Scan') {
             steps {
-                echo "🔍 Running Trivy scan..."
-                sh """
-                    trivy image --exit-code 0 --severity HIGH,CRITICAL $ECR_REPO:$IMAGE_TAG > trivy-report.txt || true
-                    echo "✅ Trivy scan completed. Report saved as trivy-report.txt"
-                """
+                script {
+                    echo "Scanning image with Trivy..."
+                    sh 'trivy image --exit-code 0 --severity LOW,MEDIUM $ECR_REPO:$IMAGE_TAG'
+                    sh 'trivy image --exit-code 1 --severity HIGH,CRITICAL $ECR_REPO:$IMAGE_TAG || true'
+                }
             }
         }
 
-        stage('Login to AWS ECR') {
-    steps {
-        echo "🔑 Logging into AWS ECR..."
-        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
-            sh '''
-                aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-                aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-                aws configure set default.region us-east-1
-
-                echo "✅ AWS credentials configured successfully."
-                aws sts get-caller-identity
-
-                aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 772954893641.dkr.ecr.us-east-1.amazonaws.com
-            '''
-        }
-    }
-}
-
-
-        stage('Push Image to ECR') {
+        stage('Push to AWS ECR') {
             steps {
-                echo "📤 Pushing image to ECR..."
-                sh """
-                    docker push $ECR_REPO:$IMAGE_TAG
-                """
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
+                    script {
+                        sh '''
+                            aws ecr get-login-password --region $AWS_REGION \
+                                | docker login --username AWS --password-stdin $ECR_REPO
+                            docker push $ECR_REPO:$IMAGE_TAG
+                        '''
+                    }
+                }
             }
         }
 
-  stage('Deploy with Ansible') {
-    steps {
-        echo "🚀 Deploying Flask app via Ansible..."
-        withCredentials([
-            sshUserPrivateKey(
-                credentialsId: 'ansible-ec2-key',
-                keyFileVariable: 'EC2_KEY'
-            ),
-            [
-                $class: 'AmazonWebServicesCredentialsBinding',
-                credentialsId: 'aws-credentials',
-                accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-            ]
-        ]) {
-            ansiblePlaybook(
-                playbook: "${ANSIBLE_DIR}/playbook.yml",
-                inventory: "${ANSIBLE_DIR}/inventory.ini",
-                limit: 'flask_server',
-                extraVars: [
-                    image_tag: "${IMAGE_TAG}"
-                ],
-                credentialsId: 'ansible-ec2-key'
-            )
+        stage('Deploy with Ansible') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'ansible-ec2-key', keyFileVariable: 'EC2_KEY')]) {
+                    script {
+                        sh '''
+                            cd ansible
+                            ansible-playbook -i inventory.ini playbook.yml \
+                                --limit flask_server \
+                                --key-file $EC2_KEY
+                        '''
+                    }
+                }
+            }
         }
     }
-}
-
 
     post {
-        always {
-            echo "🧹 Cleaning up..."
-            sh 'docker system prune -f || true'
-        }
         success {
-            echo "✅ Pipeline executed successfully!"
+            echo '✅ Deployment completed successfully!'
         }
         failure {
-            echo "❌ Pipeline failed. Check logs for details."
+            echo '❌ Pipeline failed. Please check the Jenkins logs.'
         }
     }
 }
