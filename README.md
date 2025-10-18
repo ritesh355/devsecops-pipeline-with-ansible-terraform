@@ -391,6 +391,36 @@ flowchart LR
 ```
 
 ---
+flowchart LR
+```
+  GH[GitHub Repo] --> |push| Jenkins
+
+  subgraph CI/CD
+    Jenkins --> |build image| Docker
+    Jenkins --> |scan image| Trivy
+    Trivy -->|pass| Jenkins
+    Jenkins --> |push image| ECR[ECR]
+  end
+
+  subgraph IaC_Provisioning
+    Terraform --> |create infra| EC2_Flask[Flask EC2]
+    Terraform --> |create| SG[Security Group]
+  end
+
+  subgraph Config_Management
+    Jenkins --> |trigger playbook| Ansible
+    Ansible --> |use secrets| Vault[Ansible Vault]
+    Ansible --> |ssh deploy| EC2_Flask
+  end
+
+  subgraph Monitoring
+    EC2_Flask --> |expose metrics| Prometheus
+    Prometheus --> Grafana
+    Jenkins --> |metrics endpoint| Prometheus
+  end
+```
+
+---
 
 ## 10 — Troubleshooting & common pitfalls
 
