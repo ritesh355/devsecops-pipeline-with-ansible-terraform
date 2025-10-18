@@ -315,8 +315,31 @@ pipeline {
 **Ansible Vault**
 
 * Store sensitive variables (e.g., DB passwords) in `group_vars/.../vault.yml` encrypted with ansible-vault.
+  ```
+  ansible-playbook -i inventory.ini playbook.yml --ask-vault-pass
+  
+  ```
+
 * Use `ansible-vault encrypt_string` or `ansible-vault create`.
+
 * In Jenkins, store the vault password in credentials and pass with `--vault-password-file` or `--vault-id` securely.
+
+**these are the commands which i used**
+1. Run playbook with the encrypted inventory file
+```
+ansible-playbook -i inventory.ini playbook.yml --ask-vault-pass
+```
+
+2. Edit the encrypted inventory later
+```
+ansible-vault edit inventory.ini
+```
+
+3. Decrypt if needed
+ ```
+   ansible-vault decrypt inventory.ini
+```
+
 ---
 **Jenkins credentials**
 
