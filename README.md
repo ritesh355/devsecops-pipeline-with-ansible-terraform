@@ -391,8 +391,8 @@ flowchart LR
 ```
 
 ---
+
 flowchart LR
-```
   GH[GitHub Repo] --> |push| Jenkins
 
   subgraph CI/CD
@@ -418,7 +418,6 @@ flowchart LR
     Prometheus --> Grafana
     Jenkins --> |metrics endpoint| Prometheus
   end
-```
 
 ---
 
