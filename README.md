@@ -101,10 +101,11 @@ devsecops-pipeline-with-ansible-terraform/
 ![](images/pro1.png)
 
 
-
+---
 ### outputs.tf
-![](images/outputs.png)
+![](images/outputstf.png)
 
+---
 
 ### main.tf
 
@@ -113,7 +114,7 @@ devsecops-pipeline-with-ansible-terraform/
 ![](images/main.tf3.png)
 ![](images/main.tf4.png)
 
-
+---
 
 
 **Notes & tips:**
@@ -140,6 +141,8 @@ devsecops-pipeline-with-ansible-terraform/
 ```
 ![](images/ansi1.png)
 
+---
+
 
 **Playbook (`ansible/playbook.yml`)**
 
@@ -162,10 +165,16 @@ devsecops-pipeline-with-ansible-terraform/
 ```
 ![](images/ansi2.png)
 
+---
 
 **Role `flask_app/tasks/main.yml` (example):**
-
+**flask_app_role**
 ![](images/role1.png)
+
+---
+
+**jenkins_setup**
+
 ![](images/role2.png)
 ```
 - name: Install Docker & AWS CLI v2
@@ -216,7 +225,7 @@ devsecops-pipeline-with-ansible-terraform/
   * `ansible-ec2-key` (SSH private key)
 * Ensure `trivy` is installed or install in pipeline before using it.
 
-**Example Jenkinsfile** (clean):
+**Example Jenkinsfile**:
 ![](images/jenk1.png)
 
 
@@ -274,9 +283,10 @@ pipeline {
   }
 }
 ```
+### output of CICD pipeline 
 ![](images/jenkins5.png)
 
-
+---
 
 **Notes:**
 
@@ -291,6 +301,8 @@ pipeline {
 
 * Integrate Trivy scan in pipeline. Fail builds for `HIGH/CRITICAL` if policy requires.
 * Keep a policy: fail when critical vuln found, allow medium/low with warnings.
+ ![](images/trivy.png)
+
 
 **SonarQube**
 
@@ -306,8 +318,13 @@ pipeline {
 
 * Use Jenkins Credentials store (AWS keys, SSH keys, GitHub token). Never commit secrets.
 * Use `sshagent` plugin to make SSH keys available to the build agent for the duration of the block.
+  ![](images/cred.png)
+
 
 **IAM roles & policies**
+
+![](images/conreg.png)
+
 
 * Use least-privilege:
 
@@ -363,7 +380,7 @@ groups:
 1. Developer pushes code to GitHub.
 2. Jenkins job triggers on git push.
 3. Jenkins pulls code, builds Docker image.
-4. Jenkins runs Trivy scan (and SonarQube if configured).
+4. Jenkins runs Trivy scan.
 
    * If Trivy finds critical issues → fail the build.
 5. If scan passes → Jenkins logs in to ECR and pushes the image with tag (`build-N`).
@@ -371,52 +388,6 @@ groups:
 7. Ansible logs into target EC2 (using Ansible role with proper IAM or ECR login) and pulls the pushed image, stops old container and spins up a new one (docker run).
 8. Prometheus scrapes Node Exporter and application metrics; Grafana visualizes and triggers alerts.
 
-**Mermaid diagram** (copy this into Mermaid-compatible tool or docs):
-
-```mermaid
-flowchart LR
-  GH[GitHub Repo] --> |push| Jenkins
-  Jenkins --> |build image| Docker
-  Jenkins --> |scan| Trivy
-  Trivy -->|pass| Jenkins
-  Jenkins --> |push image| ECR[ECR]
-  Jenkins --> |deploy via ansible| Ansible
-  Ansible --> |ssh| EC2_Flask[Flask EC2]
-  EC2_Flask --> |expose metrics| Prometheus
-  Prometheus --> Grafana
-  Jenkins --> |metrics endpoint| Prometheus
-```
-
----
-```mermaid
-flowchart LR
-  GH[GitHub Repo] --> |push| Jenkins
-
-  subgraph CI/CD
-    Jenkins --> |build image| Docker
-    Jenkins --> |scan image| Trivy
-    Trivy -->|pass| Jenkins
-    Jenkins --> |push image| ECR[ECR]
-  end
-
-  subgraph IaC_Provisioning
-    Terraform --> |create infra| EC2_Flask[Flask EC2]
-    Terraform --> |create| SG[Security Group]
-  end
-
-  subgraph Config_Management
-    Jenkins --> |trigger playbook| Ansible
-    Ansible --> |use secrets| Vault[Ansible Vault]
-    Ansible --> |ssh deploy| EC2_Flask
-  end
-
-  subgraph Monitoring
-    EC2_Flask --> |expose metrics| Prometheus
-    Prometheus --> Grafana
-    Jenkins --> |metrics endpoint| Prometheus
-  end
-```
----
 
 ## 10 — Troubleshooting & common pitfalls
 
@@ -466,18 +437,6 @@ docker run --rm -v /home/ubuntu/prometheus.yml:/etc/prometheus/prometheus.yml pr
 
 ---
 
-## 12 — Next improvements & checklist
-
-* Add **Alertmanager** and route alerts to Slack/Email.
-* Add **automatic rollback** logic in Ansible (keep previous container image/tag and revert if healthcheck fails).
-* Harden AWS security groups & use private subnets + load balancers for public traffic.
-* Integrate **SonarQube** and **SAST/DFIR tools** into pipeline as additional gates.
-* Use **Terraform state remote backend** (S3 + DynamoDB) for locking.
-* Implement **blue/green** or **canary** deployment for safer releases.
-* Containerize Jenkins worker agents for reproducible builds.
-
----
-
 ## Final notes & tips
 
 * **Don’t store secrets in repo**. Use Jenkins credentials and Ansible Vault.
@@ -487,10 +446,3 @@ docker run --rm -v /home/ubuntu/prometheus.yml:/etc/prometheus/prometheus.yml pr
 
 ---
 
-If you want, I can:
-
-* generate a ready-to-copy `prometheus.yml` and `alert_rules.yml`,
-* produce final versions of `main.tf` and `variables.tf` tailored to your `ec2_key` and `t3.micro`,
-* render a PNG of the mermaid workflow diagram for your `docs/` folder.
-
-Which one should I generate for you next?
