@@ -167,6 +167,7 @@ devsecops-pipeline-with-ansible-terraform/
 
 ![](images/role1.png)
 ![](images/role2.png)
+```
 - name: Install Docker & AWS CLI v2
   apt:
     name: ['docker.io', 'unzip', 'python3-pip']
@@ -195,6 +196,7 @@ devsecops-pipeline-with-ansible-terraform/
 ```
 
 
+
 **Tips:**
 
 * Use `docker_image` module where possible.
@@ -204,7 +206,7 @@ devsecops-pipeline-with-ansible-terraform/
 
 ---
 
-## 6 — Jenkinsfile (CI pipeline — build, scan, push, deploy)
+##  6 — Jenkinsfile (CI pipeline — build, scan, push, deploy)
 
 **Key points:**
 
@@ -215,6 +217,8 @@ devsecops-pipeline-with-ansible-terraform/
 * Ensure `trivy` is installed or install in pipeline before using it.
 
 **Example Jenkinsfile** (clean):
+![](images/jenk1.png)
+
 
 ```groovy
 pipeline {
@@ -270,6 +274,9 @@ pipeline {
   }
 }
 ```
+![](images/jenkins5.png)
+
+
 
 **Notes:**
 
