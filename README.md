@@ -471,4 +471,14 @@ docker run --rm -v /home/ubuntu/prometheus.yml:/etc/prometheus/prometheus.yml pr
 * Keep your **prometheus.yml** simple and validate YAML syntax when editing.
 
 ---
+## 👨‍💻 Author
 
+**Ritesh Singh**
+
+🌐 [LinkedIn](https://www.linkedin.com/in/ritesh-singh-092b84340/) 
+|
+📝 [Hashnode](https://ritesh-devops.hashnode.dev/) 
+|
+💻[GitHub](https://github.com/ritesh355/)
+|
+🌐 [LinkedIn](https://dev.to/ritesh355)
