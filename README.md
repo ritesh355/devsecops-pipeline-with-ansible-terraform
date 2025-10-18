@@ -391,7 +391,7 @@ flowchart LR
 ```
 
 ---
-
+```mermaid
 flowchart LR
   GH[GitHub Repo] --> |push| Jenkins
 
@@ -418,7 +418,7 @@ flowchart LR
     Prometheus --> Grafana
     Jenkins --> |metrics endpoint| Prometheus
   end
-
+```
 ---
 
 ## 10 — Troubleshooting & common pitfalls
