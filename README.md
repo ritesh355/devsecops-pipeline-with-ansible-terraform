@@ -1,4 +1,32 @@
 # DevSecOps CI/CD Project 
+```mermaid
+flowchart LR
+  GH[GitHub Repo] --> |push| Jenkins
+
+  subgraph CI/CD
+    Jenkins --> |build image| Docker
+    Jenkins --> |scan image| Trivy
+    Trivy -->|pass| Jenkins
+    Jenkins --> |push image| ECR[ECR]
+  end
+
+  subgraph IaC_Provisioning
+    Terraform --> |create infra| EC2_Flask[Flask EC2]
+    Terraform --> |create| SG[Security Group]
+  end
+
+  subgraph Config_Management
+    Jenkins --> |trigger playbook| Ansible
+    Ansible --> |use secrets| Vault[Ansible Vault]
+    Ansible --> |ssh deploy| EC2_Flask
+  end
+
+  subgraph Monitoring
+    EC2_Flask --> |expose metrics| Prometheus
+    Prometheus --> Grafana
+    Jenkins --> |metrics endpoint| Prometheus
+  end
+```
 
 **Project goal:** Build a full DevSecOps pipeline that builds, scans, pushes and deploys a Flask app using Docker, stores images in AWS ECR, provisions infrastructure with Terraform, configures servers with Ansible, secures pipeline with Trivy & Ansible Vault, and monitors with Prometheus + Grafana. This README documents everything you used and every step needed to reproduce, maintain and secure the workflow.
 
