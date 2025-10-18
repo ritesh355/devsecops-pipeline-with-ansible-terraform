@@ -1,33 +1,6 @@
 # DevSecOps CI/CD Project 
 ![](images/work.png)
-```mermaid
-flowchart LR
-  GH[GitHub Repo] --> |push| Jenkins
 
-  subgraph CI/CD
-    Jenkins --> |build image| Docker
-    Jenkins --> |scan image| Trivy
-    Trivy -->|pass| Jenkins
-    Jenkins --> |push image| ECR[ECR]
-  end
-
-  subgraph IaC_Provisioning
-    Terraform --> |create infra| EC2_Flask[Flask EC2]
-    Terraform --> |create| SG[Security Group]
-  end
-
-  subgraph Config_Management
-    Jenkins --> |trigger playbook| Ansible
-    Ansible --> |use secrets| Vault[Ansible Vault]
-    Ansible --> |ssh deploy| EC2_Flask
-  end
-
-  subgraph Monitoring
-    EC2_Flask --> |expose metrics| Prometheus
-    Prometheus --> Grafana
-    Jenkins --> |metrics endpoint| Prometheus
-  end
-```
 
 **Project goal:** Build a full DevSecOps pipeline that builds, scans, pushes and deploys a Flask app using Docker, stores images in AWS ECR, provisions infrastructure with Terraform, configures servers with Ansible, secures pipeline with Trivy & Ansible Vault, and monitors with Prometheus + Grafana. This README documents everything you used and every step needed to reproduce, maintain and secure the workflow.
 
@@ -124,42 +97,24 @@ devsecops-pipeline-with-ansible-terraform/
 **Goals:** create three EC2 (flask, jenkins, monitoring) t3.micro (free-tier where available), create security group, IAM role/profile for ECR read/pull.
 
 **Basic pieces** (abbreviated example):
+![](images/pro1.png)
 
-`provider.tf`:
 
-```hcl
-provider "aws" {
-  region = "us-east-1"
-}
-```
 
-`variables.tf`:
+`outputs.tf`:
+![](images/output.png)
 
-```hcl
-variable "instance_type" { default = "t3.micro" }
-variable "key_name" { default = "ec2_key" }  # your key name in AWS
-```
 
 `main.tf` (example resource pattern):
 
-```hcl
-# security group (allow 22, 5000 for flask, 8080 for jenkins, 9090/prometheus, 3000 grafana)
-resource "aws_security_group" "devops_sg" {
-  name = "devops-sg"
-  description = "Allow SSH, HTTP, app ports"
-  ingress {
-    from_port = 22; to_port = 22; protocol = "tcp"; cidr_blocks = ["YOUR_IP/32"] # lock SSH
-  }
-  ingress {
-    from_port = 5000; to_port = 5000; protocol = "tcp"; cidr_blocks = ["0.0.0.0/0"]
-  }
-  ingress { from_port = 8080; to_port = 8080; protocol = "tcp"; cidr_blocks = ["0.0.0.0/0"] }
-  ingress { from_port = 9090; to_port = 9090; protocol = "tcp"; cidr_blocks = ["YOUR_MONITORING_ALLOWED_IPS"] }
-  ingress { from_port = 3000; to_port = 3000; protocol = "tcp"; cidr_blocks = ["YOUR_MONITORING_ALLOWED_IPS"] }
-  egress { from_port = 0; to_port=0; protocol = "-1"; cidr_blocks=["0.0.0.0/0"] }
-}
-# EC2 instances: aws_instance.flask_app, jenkins, monitoring (set ami via data.aws_ami)
-```
+![](images/main.tf1.png)
+![](images/main.tf2.png)
+![](images/main.tf3.png)
+
+![](images/main.tf4.png)
+
+
+
 
 **Notes & tips:**
 
