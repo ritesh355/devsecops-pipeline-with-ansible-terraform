@@ -374,26 +374,7 @@ pipeline {
 
     
 
-**Alerting**
 
-* Use Prometheus rule files (`rule_files:`) and optionally deploy Alertmanager for routing (Slack/Email).
-* Example rule (instance_down):
-
-```yaml
-groups:
-- name: instance_rules
-  rules:
-  - alert: InstanceDown
-    expr: up == 0
-    for: 2m
-    labels:
-      severity: critical
-    annotations:
-      summary: "Instance {{ $labels.instance }} is down"
-```
-![](images/conreg.png)
-
----
 
 ## 9 — Correct workflow (step-by-step) + diagram
 
