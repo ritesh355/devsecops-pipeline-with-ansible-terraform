@@ -96,21 +96,21 @@ devsecops-pipeline-with-ansible-terraform/
 
 **Goals:** create three EC2 (flask, jenkins, monitoring) t3.micro (free-tier where available), create security group, IAM role/profile for ECR read/pull.
 
-**Basic pieces** (abbreviated example):
+**Basic pieces** 
+### Provider.tf
 ![](images/pro1.png)
 
 
 
-`outputs.tf`:
+### outputs.tf
 ![](images/output.png)
 
 
-`main.tf` (example resource pattern):
+### main.tf
 
 ![](images/main.tf1.png)
 ![](images/main.tf2.png)
 ![](images/main.tf3.png)
-
 ![](images/main.tf4.png)
 
 
