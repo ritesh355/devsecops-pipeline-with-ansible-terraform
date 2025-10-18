@@ -103,7 +103,7 @@ devsecops-pipeline-with-ansible-terraform/
 
 
 ### outputs.tf
-![](images/output.png)
+![](images/outputs.png)
 
 
 ### main.tf
@@ -138,6 +138,8 @@ devsecops-pipeline-with-ansible-terraform/
 [monitoring_server]
 10.0.1.163 ansible_user=ubuntu
 ```
+![](images/ansi1.png)
+
 
 **Playbook (`ansible/playbook.yml`)**
 
@@ -158,10 +160,13 @@ devsecops-pipeline-with-ansible-terraform/
   roles:
     - monitoring
 ```
+![](images/ansi2.png)
+
 
 **Role `flask_app/tasks/main.yml` (example):**
 
-```yaml
+![](images/role1.png)
+![](images/role2.png)
 - name: Install Docker & AWS CLI v2
   apt:
     name: ['docker.io', 'unzip', 'python3-pip']
@@ -188,6 +193,7 @@ devsecops-pipeline-with-ansible-terraform/
     name: "{{ ecr_repo }}:{{ image_tag }}"
     source: pull
 ```
+
 
 **Tips:**
 
