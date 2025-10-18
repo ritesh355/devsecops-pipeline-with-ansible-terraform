@@ -1,4 +1,5 @@
 # DevSecOps CI/CD Project 
+![](images/work.png)
 ```mermaid
 flowchart LR
   GH[GitHub Repo] --> |push| Jenkins
