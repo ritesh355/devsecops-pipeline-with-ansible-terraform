@@ -103,7 +103,7 @@ devsecops-pipeline-with-ansible-terraform/
 
 ---
 ### outputs.tf
-![](images/outputstf.png)
+![](images/outputs.tf.png)
 
 ---
 
@@ -173,7 +173,7 @@ devsecops-pipeline-with-ansible-terraform/
 
 ---
 
-**jenkins_setup**
+**jenkins_setup role**
 
 ![](images/role2.png)
 ```
@@ -301,26 +301,32 @@ pipeline {
 
 * Integrate Trivy scan in pipeline. Fail builds for `HIGH/CRITICAL` if policy requires.
 * Keep a policy: fail when critical vuln found, allow medium/low with warnings.
+  
  ![](images/trivy.png)
 
+---
 
 **SonarQube**
 
 * Optional code-quality & SAST. Could be run in Jenkins stage. Use Sonarqube scanner plugin.
+
+---
 
 **Ansible Vault**
 
 * Store sensitive variables (e.g., DB passwords) in `group_vars/.../vault.yml` encrypted with ansible-vault.
 * Use `ansible-vault encrypt_string` or `ansible-vault create`.
 * In Jenkins, store the vault password in credentials and pass with `--vault-password-file` or `--vault-id` securely.
-
+---
 **Jenkins credentials**
 
 * Use Jenkins Credentials store (AWS keys, SSH keys, GitHub token). Never commit secrets.
 * Use `sshagent` plugin to make SSH keys available to the build agent for the duration of the block.
+  
+
   ![](images/cred.png)
 
-
+---
 **IAM roles & policies**
 
 ![](images/conreg.png)
@@ -328,8 +334,10 @@ pipeline {
 
 * Use least-privilege:
 
-  * ECR push/pull: `AmazonEC2ContainerRegistryPowerUser` or custom policy limited to the repo.
-  * EC2 instance profile for servers that will `docker pull` to fetch images should have ECR read access or use `AmazonEC2ContainerRegistryReadOnly`.
+ * ECR push/pull: `AmazonEC2ContainerRegistryPowerUser` or custom policy limited to the repo.
+![](images/power.png)
+
+* EC2 instance profile for servers that will `docker pull` to fetch images should have ECR read access or use `AmazonEC2ContainerRegistryReadOnly`.
 * Prefer instance profiles over hardcoded AWS keys on hosts.
 
 ---
@@ -337,6 +345,7 @@ pipeline {
 ## 8 — Monitoring: Prometheus + Grafana + Node Exporter + Jenkins plugin
 
 **Prometheus**
+![](images/prom1.png)
 
 * Add scrape targets:
 
@@ -345,13 +354,25 @@ pipeline {
   * Jenkins: `metrics_path: '/prometheus'` (requires Prometheus plugin)
 
 **Grafana**
+![](images/graph1.png)
 
 * Add Prometheus datasource: URL `http://<prometheus_host>:9090`
 * Import dashboards:
 
-  * Node Exporter Full (ID 1860)
-  * Jenkins Overview (ID 9964) — once Jenkins endpoint is scraped successfully
-* Set up Alerting in Grafana or route Prometheus alerts via Alertmanager.
+  **Node Exporter Full (ID 1860)**
+    ![](images/graph2.png)
+
+  **Docker Monitoring → Dashboard ID: 12227**
+        ![](images/graph3.png)
+
+  **Prometheus 2.0 Stats → Dashboard ID: 3662**
+          ![](images/graph4.png)
+
+
+  **Set up Alerting in Grafana**
+          ![](images/alert.png)
+
+    
 
 **Alerting**
 
@@ -370,6 +391,7 @@ groups:
     annotations:
       summary: "Instance {{ $labels.instance }} is down"
 ```
+![](images/conreg.png)
 
 ---
 
